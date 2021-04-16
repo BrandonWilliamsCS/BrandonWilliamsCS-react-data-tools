@@ -1,0 +1,11 @@
+{
+  "name": "@blueharborsolutions/react-data-tools",
+  "version": "0.1.0",
+  "description": "Eases data and control flow patterns that live outside of the ReactJS \"data down, events up\" cycle.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brandon Williams <Brandon.Willams@BlueHarborSolutions.com>",
+  "license": "ISC"
+}
