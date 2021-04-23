@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
-    "module": "esnext",
+    "module": "es2015",
     "target": "es2015",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "strict": true,
     "declaration": true,
     "outDir": "./dist"
   },
