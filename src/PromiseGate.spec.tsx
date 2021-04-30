@@ -1,7 +1,7 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 
-import { PromiseStatusGate } from "./PromiseStatusGate";
+import { PromiseGate } from "./PromiseGate";
 import { PromiseStatus, processPromise, succeed, fail } from "./PromiseStatus";
 
 const initialStatus: PromiseStatus<string, string> = processPromise<
@@ -11,20 +11,20 @@ const initialStatus: PromiseStatus<string, string> = processPromise<
 const renderValue = (value: string) => <div>value-{value}</div>;
 const renderError = (error: string) => <div>error-{error}</div>;
 const renderPendingFlat = <div>pending</div>;
-const renderPendingFunction = () => <div>pending</div>;
 
-describe("PromiseStatusGate", () => {
-  it("renders pending content when status represents initial processing", async () => {
+describe("PromiseGate", () => {
+  it("renders pending content before promise resolves", async () => {
     // Arrange
+    const { promise } = makePromise<string, string>();
     // Act
     const { rerender } = render(
-      <PromiseStatusGate
-        status={initialStatus}
+      <PromiseGate
+        promise={promise}
         errorContent={renderError}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
     // Assert
     expect(screen.queryByText("pending")).not.toBeNull();
@@ -32,86 +32,80 @@ describe("PromiseStatusGate", () => {
     expect(screen.queryByText("error-first")).toBeNull();
   });
 
-  it("renders value content when status represents initial success", async () => {
+  it("renders value content when promise resolves", async () => {
     // Arrange
-    const secondaryStatus = succeed(initialStatus, "first");
+    const { promise, resolve } = makePromise<string, string>();
     // Act
     const { rerender } = render(
-      <PromiseStatusGate
-        status={initialStatus}
+      <PromiseGate
+        promise={promise}
         errorContent={renderError}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
-    rerender(
-      <PromiseStatusGate
-        status={secondaryStatus}
-        errorContent={renderError}
-        pendingContent={renderPendingFlat}
-      >
-        {renderValue}
-      </PromiseStatusGate>,
-    );
+    await act(async () => {
+      resolve("first");
+      await promise;
+    });
     // Assert
     expect(screen.queryByText("pending")).toBeNull();
     expect(screen.queryByText("value-first")).not.toBeNull();
     expect(screen.queryByText("error-first")).toBeNull();
   });
 
-  it("renders error content when status represents initial error", async () => {
+  it("renders error content when promise rejects", async () => {
     // Arrange
-    const secondaryStatus = fail(initialStatus, "first");
+    const { promise, reject } = makePromise<string, string>();
     // Act
     const { rerender } = render(
-      <PromiseStatusGate
-        status={initialStatus}
+      <PromiseGate
+        promise={promise}
         errorContent={renderError}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
-    rerender(
-      <PromiseStatusGate
-        status={secondaryStatus}
-        errorContent={renderError}
-        pendingContent={renderPendingFlat}
-      >
-        {renderValue}
-      </PromiseStatusGate>,
-    );
+    await act(async () => {
+      reject("first");
+      try {
+        await promise;
+      } catch {}
+    });
     // Assert
     expect(screen.queryByText("pending")).toBeNull();
     expect(screen.queryByText("value-first")).toBeNull();
     expect(screen.queryByText("error-first")).not.toBeNull();
   });
 
-  it("renders pending above value content when status represents processing after success", async () => {
+  it("renders pending above value content when a new promise follows a resolved one", async () => {
     // Arrange
-    const secondaryStatus = processPromise(
-      new Promise<string>(() => {}),
-      succeed(initialStatus, "first"),
-    );
+    const { promise, resolve } = makePromise<string, string>();
+    const { promise: secondPromise } = makePromise<string, string>();
     // Act
     const { rerender } = render(
-      <PromiseStatusGate
-        status={initialStatus}
+      <PromiseGate
+        promise={promise}
         errorContent={renderError}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
+    await act(async () => {
+      resolve("first");
+      await promise;
+    });
     rerender(
-      <PromiseStatusGate
-        status={secondaryStatus}
+      <PromiseGate
+        promise={secondPromise}
         errorContent={renderError}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
     // Assert
     expect(screen.queryByText("pending")).not.toBeNull();
@@ -119,30 +113,34 @@ describe("PromiseStatusGate", () => {
     expect(screen.queryByText("error-first")).toBeNull();
   });
 
-  it("renders pending content when status represents processing after error", async () => {
+  it("renders pending content when a new promise follows an rejected one", async () => {
     // Arrange
-    const secondaryStatus = processPromise(
-      new Promise<string>(() => {}),
-      fail(initialStatus, "first"),
-    );
+    const { promise, reject } = makePromise<string, string>();
+    const { promise: secondPromise } = makePromise<string, string>();
     // Act
     const { rerender } = render(
-      <PromiseStatusGate
-        status={initialStatus}
+      <PromiseGate
+        promise={promise}
         errorContent={renderError}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
+    await act(async () => {
+      reject("first");
+      try {
+        await promise;
+      } catch {}
+    });
     rerender(
-      <PromiseStatusGate
-        status={secondaryStatus}
+      <PromiseGate
+        promise={secondPromise}
         errorContent={renderError}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
     // Assert
     expect(screen.queryByText("pending")).not.toBeNull();
@@ -150,68 +148,60 @@ describe("PromiseStatusGate", () => {
     expect(screen.queryByText("error-first")).toBeNull();
   });
 
-  it("renders error over value content when status represents error after success", async () => {
+  it("renders error over value content when a rejected promise follows a resolved one", async () => {
     // Arrange
-    const secondaryStatus = fail(
-      processPromise(
-        new Promise<string>(() => {}),
-        succeed(initialStatus, "first"),
-      ),
-      "second",
-    );
+    const { promise, resolve } = makePromise<string, string>();
+    const { promise: secondPromise, reject: secondReject } = makePromise<
+      string,
+      string
+    >();
     // Act
     const { rerender } = render(
-      <PromiseStatusGate
-        status={initialStatus}
+      <PromiseGate
+        promise={promise}
         errorContent={renderError}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
+    await act(async () => {
+      resolve("first");
+      await promise;
+    });
     rerender(
-      <PromiseStatusGate
-        status={secondaryStatus}
+      <PromiseGate
+        promise={secondPromise}
         errorContent={renderError}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
+    await act(async () => {
+      secondReject("second");
+      try {
+        await secondPromise;
+      } catch {}
+    });
     // Assert
     expect(screen.queryByText("pending")).toBeNull();
     expect(screen.queryByText("value-first")).not.toBeNull();
     expect(screen.queryByText("error-second")).not.toBeNull();
   });
 
-  it("renders result of `pendingContent` when it's a function", async () => {
-    // Arrange
-    const renderPendingFunction = () => renderPendingFlat;
-    // Act
-    const { rerender } = render(
-      <PromiseStatusGate
-        status={initialStatus}
-        errorContent={renderError}
-        pendingContent={renderPendingFunction}
-      >
-        {renderValue}
-      </PromiseStatusGate>,
-    );
-    // Assert
-    expect(screen.queryByText("pending")).not.toBeNull();
-  });
-
   it("renders no pending content when `pendingContent` is omitted", async () => {
     // Arrange
+    const { promise } = makePromise<string, string>();
     // Act
     const { rerender } = render(
-      <PromiseStatusGate
-        status={initialStatus}
+      <PromiseGate
+        promise={promise}
         errorContent={renderError}
         pendingContent={undefined}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
     // Assert
     expect(screen.queryByText("pending")).toBeNull();
@@ -219,18 +209,34 @@ describe("PromiseStatusGate", () => {
 
   it("renders no error content when `errorContent` is omitted", async () => {
     // Arrange
-    const secondaryStatus = fail(initialStatus, "first");
+    const { promise, reject } = makePromise<string, string>();
     // Act
     const { rerender } = render(
-      <PromiseStatusGate
-        status={secondaryStatus}
+      <PromiseGate
+        promise={promise}
         errorContent={undefined}
         pendingContent={renderPendingFlat}
       >
         {renderValue}
-      </PromiseStatusGate>,
+      </PromiseGate>,
     );
+    await act(async () => {
+      reject("first");
+      try {
+        await promise;
+      } catch {}
+    });
     // Assert
     expect(screen.queryByText("error-first")).toBeNull();
   });
 });
+
+function makePromise<T, E>() {
+  let resolve!: (t: T) => void;
+  let reject!: (e: E) => void;
+  const promise = new Promise<T>((_resolve, _reject) => {
+    resolve = _resolve;
+    reject = _reject;
+  });
+  return { promise, resolve, reject };
+}
