@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "description": "Eases data and control flow patterns that live outside of the ReactJS \"data down, events up\" cycle.",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
-    "/dist"
+    "dist/**/*"
   ],
   "scripts": {
     "build": "tsc",
+    "link": "copy package.json dist\\package.json && cd dist && npm link",
     "test": "jest --watch"
   },
   "author": "Brandon Williams <Brandon.Willams@BlueHarborSolutions.com>",
