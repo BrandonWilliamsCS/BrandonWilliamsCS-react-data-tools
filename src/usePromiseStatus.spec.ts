@@ -3,7 +3,7 @@ import { act, renderHook } from "@testing-library/react-hooks";
 import { usePromiseStatus } from "./usePromiseStatus";
 
 describe("usePromiseStatus", () => {
-  it("returns pending state before the first promise", async () => {
+  it("returns undefined before the first promise", async () => {
     // Arrange
     const promise: Promise<string> | undefined = undefined;
     // Act
@@ -13,11 +13,7 @@ describe("usePromiseStatus", () => {
     );
     // Assert
     const currentState = result.current;
-    expect(currentState).toMatchObject({
-      isPending: true,
-      hasError: false,
-      hasValue: false,
-    });
+    expect(currentState).toBe(undefined);
   });
 
   it("returns pending state during the first promise", async () => {
@@ -114,10 +110,8 @@ describe("usePromiseStatus", () => {
   it("returns a rest state with second result after two successful promises", async () => {
     // Arrange
     const { promise, resolve } = makePromise<string, string>();
-    const { promise: secondPromise, resolve: secondResolve } = makePromise<
-      string,
-      string
-    >();
+    const { promise: secondPromise, resolve: secondResolve } =
+      makePromise<string, string>();
     // Act
     const { result, rerender } = renderHook(
       (props) => usePromiseStatus<string, string>(props.promise),
@@ -172,10 +166,8 @@ describe("usePromiseStatus", () => {
   it("returns a rest state with second error after two failed promises", async () => {
     // Arrange
     const { promise, reject } = makePromise<string, string>();
-    const { promise: secondPromise, reject: secondReject } = makePromise<
-      string,
-      string
-    >();
+    const { promise: secondPromise, reject: secondReject } =
+      makePromise<string, string>();
     // Act
     const { result, rerender } = renderHook(
       (props) => usePromiseStatus<string, string>(props.promise),
@@ -208,10 +200,8 @@ describe("usePromiseStatus", () => {
   it("ignores first result when second promise finishes first", async () => {
     // Arrange
     const { promise, resolve } = makePromise<string, string>();
-    const { promise: secondPromise, resolve: secondResolve } = makePromise<
-      string,
-      string
-    >();
+    const { promise: secondPromise, resolve: secondResolve } =
+      makePromise<string, string>();
     // Act
     const { result, rerender } = renderHook(
       (props) => usePromiseStatus<string, string>(props.promise),

@@ -3,16 +3,14 @@ import { act, renderHook } from "@testing-library/react-hooks";
 import { useDelayedState } from "./useDelayedState";
 
 describe("useDelayedState", () => {
-  it("initially returns a never-resolving promise", async () => {
+  it("initially returns undefined", async () => {
     // Arrange
     const compute = (param: number) => Promise.resolve(param);
     // Act
     const { result } = renderHook(() => useDelayedState(compute));
     // Assert
     const [statePromise] = result.current;
-    const timeoutPromise = delayedPromise(100).then(() => -1);
-    const racePromise = Promise.race([statePromise, timeoutPromise]);
-    await expect(racePromise).resolves.toBe(-1);
+    await expect(statePromise).toBe(undefined);
   });
   it("resolves to the result of computation when loaded", async () => {
     // Arrange
