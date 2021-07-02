@@ -110,8 +110,10 @@ describe("usePromiseStatus", () => {
   it("returns a rest state with second result after two successful promises", async () => {
     // Arrange
     const { promise, resolve } = makePromise<string, string>();
-    const { promise: secondPromise, resolve: secondResolve } =
-      makePromise<string, string>();
+    const { promise: secondPromise, resolve: secondResolve } = makePromise<
+      string,
+      string
+    >();
     // Act
     const { result, rerender } = renderHook(
       (props) => usePromiseStatus<string, string>(props.promise),
@@ -166,8 +168,10 @@ describe("usePromiseStatus", () => {
   it("returns a rest state with second error after two failed promises", async () => {
     // Arrange
     const { promise, reject } = makePromise<string, string>();
-    const { promise: secondPromise, reject: secondReject } =
-      makePromise<string, string>();
+    const { promise: secondPromise, reject: secondReject } = makePromise<
+      string,
+      string
+    >();
     // Act
     const { result, rerender } = renderHook(
       (props) => usePromiseStatus<string, string>(props.promise),
@@ -200,8 +204,10 @@ describe("usePromiseStatus", () => {
   it("ignores first result when second promise finishes first", async () => {
     // Arrange
     const { promise, resolve } = makePromise<string, string>();
-    const { promise: secondPromise, resolve: secondResolve } =
-      makePromise<string, string>();
+    const { promise: secondPromise, resolve: secondResolve } = makePromise<
+      string,
+      string
+    >();
     // Act
     const { result, rerender } = renderHook(
       (props) => usePromiseStatus<string, string>(props.promise),
