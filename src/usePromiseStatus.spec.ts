@@ -232,6 +232,27 @@ describe("usePromiseStatus", () => {
       source: secondPromise,
     });
   });
+
+  it("abstains from setState when component unmounts before resolution", async () => {
+    // Arrange
+    var spiedConsoleError = jest.spyOn(global.console, 'error');
+    const { promise, resolve } = makePromise<string, string>();
+    // Act
+    const { result, unmount } = renderHook(
+      (props) => usePromiseStatus<string, string>(props.promise),
+      { initialProps: { promise } },
+    );
+    unmount();
+    await act(async () => {
+      resolve("first");
+      await promise;
+    });
+    // Assert
+    // React produces a console error after post-unmount setStates.
+    expect(spiedConsoleError).not.toHaveBeenCalled();
+    spiedConsoleError.mockReset();
+    spiedConsoleError.mockRestore();
+  });
 });
 
 function makePromise<T, E>() {
