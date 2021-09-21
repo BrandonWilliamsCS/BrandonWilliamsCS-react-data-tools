@@ -16,6 +16,20 @@ describe("trackPromiseStatus", () => {
       hasValue: false,
     });
   });
+  it("syncronously returns the pending status", async () => {
+    // Arrange
+    const { promise } = makePromise<string, string>();
+    const handleChange = jest.fn();
+    // Act
+    const result = trackPromiseStatus(promise, handleChange);
+    // Assert
+    expect(result).toEqual({
+      isPending: true,
+      hasError: false,
+      source: promise,
+      hasValue: false,
+    });
+  });
   it("calls the change callback immediately with a pending status containing a previous value", async () => {
     // Arrange
     const { promise } = makePromise<string, string>();

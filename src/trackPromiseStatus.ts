@@ -4,7 +4,7 @@ export function trackPromiseStatus<T, E = any>(
   promise: Promise<T>,
   onChange: (nextStatus: PromiseStatus<T, E>) => void,
   previous?: PromiseStatus<T, E>,
-): void {
+): PromiseStatus<T, E> {
   // Immediately record that the data is being processed.
   let currentStatus = processPromise(promise, previous);
   onChange(currentStatus);
@@ -18,4 +18,5 @@ export function trackPromiseStatus<T, E = any>(
       currentStatus = fail(currentStatus, error);
       onChange(currentStatus);
     });
+  return currentStatus;
 }
