@@ -1,16 +1,19 @@
 {
   "compilerOptions": {
-    "module": "es2015",
-    "target": "es2015",
-    "esModuleInterop": true,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "jsx": "react",
+    "module": "es2015",
     "moduleResolution": "node",
-    "strict": true,
-    "declaration": true,
     "outDir": "./dist",
-    "jsx": "react"
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2015"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.spec.tsx"]

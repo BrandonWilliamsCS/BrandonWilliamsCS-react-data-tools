@@ -1,7 +1,8 @@
 import React from "react";
-
-import { PromiseStatus } from "./PromiseStatus";
-import { trackPromiseStatus } from "./trackPromiseStatus";
+import {
+  PromiseStatus,
+  trackPromiseStatus,
+} from "@blueharborsolutions/data-tools/promise";
 
 export function usePromiseStatus<T, E = any>(
   promise: Promise<T>,

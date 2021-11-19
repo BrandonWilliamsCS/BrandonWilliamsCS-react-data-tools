@@ -1,8 +1,13 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import {
+  PromiseStatus,
+  processPromise,
+  succeed,
+  fail,
+} from "@blueharborsolutions/data-tools/promise";
 
 import { PromiseStatusGate } from "./PromiseStatusGate";
-import { PromiseStatus, processPromise, succeed, fail } from "./PromiseStatus";
 
 const initialStatus: PromiseStatus<string, string> = processPromise<
   string,

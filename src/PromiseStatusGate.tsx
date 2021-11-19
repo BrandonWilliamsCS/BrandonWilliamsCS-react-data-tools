@@ -1,6 +1,5 @@
 import React from "react";
-
-import { PromiseStatus } from "./PromiseStatus";
+import { PromiseStatus } from "@blueharborsolutions/data-tools/promise";
 
 /**
  * Switches over the possible statuses of a PromiseStatus and renders the

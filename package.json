@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc",
     "link": "copy package.json dist\\package.json && cd dist && npm link",
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "link-deps": "npm link @blueharborsolutions/data-tools"
   },
   "author": "Brandon Williams <Brandon.Willams@BlueHarborSolutions.com>",
   "license": "ISC",
