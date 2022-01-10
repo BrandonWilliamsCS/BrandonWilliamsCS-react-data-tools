@@ -1,5 +1,8 @@
 import React from "react";
-import { PromiseStatus } from "@blueharborsolutions/data-tools/promise";
+import {
+  initialStatus,
+  PromiseStatus,
+} from "@blueharborsolutions/data-tools/promise";
 
 /**
  * Switches over the possible statuses of a PromiseStatus and renders the
@@ -19,21 +22,22 @@ export function PromiseStatusGate<T, E = any>({
   errorContent,
   pendingContent,
 }: PromiseStatusGateProps<T, E>) {
+  const adjustedStatus = status ?? initialStatus;
   // The ReactNode type is complex enough that TS doesn't "narrow" here,
   //  but instead falls back to "any". So, explicitly re-limit the result.
   const pendingFunction: () => React.ReactNode = () =>
     typeof pendingContent !== "function" ? pendingContent : pendingContent();
   return (
     <>
-      {status.isPending && pendingFunction()}
-      {status.hasError && errorContent?.(status.error)}
-      {status.hasValue && children(status.value)}
+      {adjustedStatus.isPending && pendingFunction()}
+      {adjustedStatus.hasError && errorContent?.(adjustedStatus.error)}
+      {adjustedStatus.hasValue && children(adjustedStatus.value)}
     </>
   );
 }
 
 export interface PromiseStatusGateProps<T, E> {
-  status: PromiseStatus<T, E>;
+  status: PromiseStatus<T, E> | undefined;
   children: (value: T) => React.ReactNode;
   errorContent?: (value: E) => React.ReactNode;
   pendingContent?: React.ReactNode | (() => React.ReactNode);

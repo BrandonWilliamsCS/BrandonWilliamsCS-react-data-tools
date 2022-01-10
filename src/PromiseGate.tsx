@@ -22,7 +22,7 @@ export function PromiseGate<T, E = any>({
 }
 
 export interface PromiseGateProps<T, E> {
-  promise: Promise<T>;
+  promise: Promise<T> | undefined;
   children: (value: T) => React.ReactNode;
   errorContent?: (value: E) => React.ReactNode;
   pendingContent?: React.ReactNode | (() => React.ReactNode);

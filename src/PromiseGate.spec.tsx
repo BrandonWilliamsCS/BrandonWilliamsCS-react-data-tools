@@ -1,21 +1,31 @@
 import React from "react";
 import { render, screen, act } from "@testing-library/react";
-import {
-  PromiseStatus,
-  processPromise,
-} from "@blueharborsolutions/data-tools/promise";
 
 import { PromiseGate } from "./PromiseGate";
 
-const initialStatus: PromiseStatus<string, string> = processPromise<
-  string,
-  string
->(new Promise(() => {}));
 const renderValue = (value: string) => <div>value-{value}</div>;
 const renderError = (error: string) => <div>error-{error}</div>;
 const renderPendingFlat = <div>pending</div>;
 
 describe("PromiseGate", () => {
+  it("renders no content when initial promise is undefined", async () => {
+    // Arrange
+    // Act
+    const { rerender } = render(
+      <PromiseGate
+        promise={undefined}
+        errorContent={renderError}
+        pendingContent={renderPendingFlat}
+      >
+        {renderValue}
+      </PromiseGate>,
+    );
+    // Assert
+    expect(screen.queryByText("pending")).toBeNull();
+    expect(screen.queryByText("value-first")).toBeNull();
+    expect(screen.queryByText("error-first")).toBeNull();
+  });
+
   it("renders pending content before promise resolves", async () => {
     // Arrange
     const { promise } = makePromise<string, string>();
