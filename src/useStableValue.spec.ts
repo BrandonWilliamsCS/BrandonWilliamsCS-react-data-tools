@@ -34,4 +34,56 @@ describe("useStableValue", () => {
     // Assert
     expect(result.current).toBe(1);
   });
+
+  it("runs cleanup on the old value when the value changes", async () => {
+    // Arrange
+    let i = 0;
+    const computeValue = () => i++;
+    const cleanup = jest.fn();
+
+    // Act
+    const { result, rerender } = renderHook(
+      (deps) => useStableValue(computeValue, deps, cleanup),
+      { initialProps: [0] },
+    );
+    rerender([1]);
+
+    // Assert
+    expect(cleanup).toHaveBeenCalledWith(0);
+  });
+
+  it("does not run cleanup when value remains unchanged", async () => {
+    // Arrange
+    let i = 0;
+    const computeValue = () => i++;
+    const cleanup = jest.fn();
+
+    // Act
+    const { result, rerender } = renderHook(
+      (deps) => useStableValue(computeValue, deps, cleanup),
+      { initialProps: [0] },
+    );
+    rerender([0]);
+
+    // Assert
+    expect(cleanup).not.toHaveBeenCalled();
+  });
+
+  it("runs cleanup on the final value after unmount", async () => {
+    // Arrange
+    let i = 0;
+    const computeValue = () => i++;
+    const cleanup = jest.fn();
+
+    // Act
+    const { unmount } = renderHook(
+      (deps) => useStableValue(computeValue, deps, cleanup),
+      { initialProps: [0] },
+    );
+    unmount();
+
+    // Assert
+    console.warn("asserting");
+    expect(cleanup).toHaveBeenCalledWith(0);
+  });
 });
