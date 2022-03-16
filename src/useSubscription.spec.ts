@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react-hooks";
-import { Subject } from "rxjs";
+import { map, Observable, Subject } from "rxjs";
 
-import { useSubscribableValue, useSubscription } from "./useSubscription";
+import { useSubscription } from "./useSubscription";
 
 describe("useSubscription", () => {
   it("subscribes to the provided observable", async () => {
@@ -96,43 +96,25 @@ describe("useSubscription", () => {
     // Assert
     expect(observer).not.toHaveBeenCalled();
   });
-});
-
-describe("useSubscribableValue", () => {
-  it("initially returns provided initial value", async () => {
+  it("pipes emissions through latest piper when specified", async () => {
     // Arrange
-    const subject = new Subject();
-    const initialValue = 3;
+    const subject = new Subject<number>();
+    const observer = jest.fn();
+    const piper1 = (numbers: Observable<number>): Observable<string> => {
+      throw new Error("");
+    };
+    const piper2 = (numbers: Observable<number>) =>
+      numbers.pipe(map((num) => num.toString()));
     // Act
-    const { result } = renderHook(
-      ([subject, initialValue]) => useSubscribableValue(subject, initialValue),
-      { initialProps: [subject, initialValue] as const },
+    const { rerender } = renderHook(
+      ([subject, observer, piper]) => useSubscription(subject, observer, piper),
+      { initialProps: [subject, observer, piper1] as const },
     );
-    // Assert
-    expect(result.current).toBe(initialValue);
-  });
-  it("initially returns undefined given no initial value", async () => {
-    // Arrange
-    const subject = new Subject();
-    // Act
-    const { result } = renderHook(() => useSubscribableValue(subject));
-    // Assert
-    expect(result.current).not.toBeDefined();
-  });
-  it("returns emitted value after emission", async () => {
-    // Arrange
-    const subject = new Subject();
-    const initialValue = 3;
-    const secondaryValue = 3;
-    // Act
-    const { result } = renderHook(
-      ([subject, initialValue]) => useSubscribableValue(subject, initialValue),
-      { initialProps: [subject, initialValue] as const },
-    );
+    rerender([subject, observer, piper2]);
     act(() => {
-      subject.next(secondaryValue);
+      subject.next(5);
     });
     // Assert
-    expect(result.current).toBe(secondaryValue);
+    expect(observer).toHaveBeenCalledWith("5");
   });
 });

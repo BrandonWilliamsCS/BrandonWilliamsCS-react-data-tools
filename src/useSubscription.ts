@@ -3,40 +3,39 @@ import { Observable, Observer } from "rxjs";
 import { useVolatileValue } from "./useVolatileValue";
 
 export function useSubscription<T>(
-  subscribable: Observable<T> | undefined,
+  observable: Observable<T> | undefined,
   observer: Partial<Observer<T>> | ((value: T) => void),
+): void;
+export function useSubscription<T, R = T>(
+  observable: Observable<T> | undefined,
+  observer: Partial<Observer<R>> | ((value: R) => void),
+  piper: (base: Observable<T>) => Observable<R>,
+): void;
+export function useSubscription<T, R = T>(
+  observable: Observable<T> | undefined,
+  observer: Partial<Observer<R>> | ((value: R) => void),
+  piper?: (base: Observable<T>) => Observable<R>,
 ): void {
-  const observerRef = useVolatileValue(observer);
+  const consumerRef = useVolatileValue({ observer, piper });
   // useLayoutEffect means we subscribe immediately after render, rather than
   // in a new "frame". Otherwise we could miss emissions.
   React.useLayoutEffect(() => {
-    if (!subscribable) {
+    if (!observable) {
       return;
     }
-    const unsubscribable = subscribable.subscribe((value) => {
-      const normalizedObserver = normalizeObserver(observerRef.current);
+    const { piper } = consumerRef.current;
+    const pipedObservable = piper
+      ? piper(observable)
+      : // If piper isn't specified, we know T=R anyway.
+        (observable as unknown as Observable<R>);
+    const unsubscribable = pipedObservable.subscribe((value) => {
+      const normalizedObserver = normalizeObserver(
+        consumerRef.current.observer,
+      );
       normalizedObserver.next?.(value);
     });
     return unsubscribable.unsubscribe.bind(unsubscribable);
-  }, [subscribable]);
-}
-
-export function useSubscribableValue<T>(
-  subscribable: Observable<T> | undefined,
-): T | undefined;
-export function useSubscribableValue<T>(
-  subscribable: Observable<T> | undefined,
-  initialValue: T,
-): T;
-export function useSubscribableValue<T>(
-  subscribable: Observable<T> | undefined,
-  initialValue?: T,
-): T | undefined {
-  // Note: if initial value is provided, we can safely ignore `| undefined`
-  //  as the value will always be a `T`.
-  const [value, setValue] = React.useState<T | undefined>(initialValue);
-  useSubscription(subscribable, setValue);
-  return value;
+  }, [observable]);
 }
 
 function normalizeObserver<T>(
