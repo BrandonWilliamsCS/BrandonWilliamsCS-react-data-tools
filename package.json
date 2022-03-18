@@ -1,5 +1,5 @@
 {
-  "name": "@blueharborsolutions/react-data-tools",
+  "name": "@brandonwilliamscs/react-data-tools",
   "version": "0.1.0",
   "description": "Eases data and control flow patterns that live outside of the ReactJS \"data down, events up\" cycle.",
   "main": "dist/index.js",
@@ -10,10 +10,10 @@
     "build": "tsc",
     "link": "copy package.json dist\\package.json && cd dist && npm link",
     "test": "jest --watch",
-    "link-deps": "npm link @blueharborsolutions/data-tools"
+    "link-deps": "npm link @brandonwilliamscs/data-tools"
   },
-  "author": "Brandon Williams <Brandon.Willams@BlueHarborSolutions.com>",
-  "license": "ISC",
+  "author": "Brandon Williams",
+  "license": "MIT",
   "devDependencies": {
     "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/react": "^11.2.6",

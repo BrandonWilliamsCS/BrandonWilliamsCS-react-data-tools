@@ -2,7 +2,7 @@ import React from "react";
 import {
   initialStatus,
   PromiseStatus,
-} from "@blueharborsolutions/data-tools/promise";
+} from "@brandonwilliamscs/data-tools/promise";
 
 /**
  * Switches over the possible statuses of a PromiseStatus and renders the
