@@ -83,7 +83,6 @@ describe("useStableValue", () => {
     unmount();
 
     // Assert
-    console.warn("asserting");
     expect(cleanup).toHaveBeenCalledWith(0);
   });
 });

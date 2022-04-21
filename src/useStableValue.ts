@@ -1,10 +1,11 @@
 import React from "react";
+import { useVolatileValue } from "./useVolatileValue";
 
 /**
  * Tracks a value as `useRef` does, but automatically (re-)computes if and only if dependencies change.
  * @param compute produces the value to store when needed
  * @param deps a dependency array that indicates when a new value should be produced
- * @param cleanup logic to run on old values once they
+ * @param cleanup logic to run on old values once they stop being used
  * @returns the current, stable value
  */
 export function useStableValue<T>(
@@ -14,26 +15,26 @@ export function useStableValue<T>(
 ): T {
   const value = React.useRef<T | undefined>();
   const previousDeps = React.useRef<unknown[] | undefined>();
-  const hasValue = React.useRef(false);
 
   if (!areSame(deps, previousDeps.current)) {
-    if (cleanup && hasValue.current) {
-      // This should be okay outside of a useEffect because it's idempotent.
+    // Run cleanup on the value, if this isn't the first.
+    // This should be okay outside of a useEffect because it's idempotent.
+    if (cleanup && previousDeps.current) {
       cleanup(value.current!);
     }
     previousDeps.current = deps;
     value.current = compute();
-    hasValue.current = true;
   }
 
   // Make sure the final value is cleaned up at the end.
-  // Do this ref dance to make sure the latest cleanup logic is used.
-  const cleanupRef = React.useRef(cleanup);
-  cleanupRef.current = cleanup;
+  const cleanupRef = useVolatileValue(cleanup);
   React.useEffect(() => {
     return () => {
-      if (cleanupRef.current && hasValue.current) {
+      if (cleanupRef.current) {
         cleanupRef.current(value.current!);
+        // Cleaned-up objects must be re-created in case of re-mount.
+        previousDeps.current = undefined;
+        value.current = undefined;
       }
     };
   }, []);

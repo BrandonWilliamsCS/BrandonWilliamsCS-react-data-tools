@@ -1,9 +1,10 @@
+import { initialStatus } from "@brandonwilliamscs/data-tools/promise";
 import { act, renderHook } from "@testing-library/react-hooks";
 
 import { usePromiseStatus } from "./usePromiseStatus";
 
 describe("usePromiseStatus", () => {
-  it("returns undefined before the first promise", async () => {
+  it("returns an initial status before the first promise", async () => {
     // Arrange
     const promise: Promise<string> | undefined = undefined;
     // Act
@@ -13,7 +14,7 @@ describe("usePromiseStatus", () => {
     );
     // Assert
     const currentState = result.current;
-    expect(currentState).toBe(undefined);
+    expect(currentState).toBe(initialStatus);
   });
 
   it("returns pending state during the first promise", async () => {
@@ -235,7 +236,7 @@ describe("usePromiseStatus", () => {
 
   it("abstains from setState when component unmounts before resolution", async () => {
     // Arrange
-    var spiedConsoleError = jest.spyOn(global.console, 'error');
+    let spiedConsoleError = jest.spyOn(global.console, "error");
     const { promise, resolve } = makePromise<string, string>();
     // Act
     const { result, unmount } = renderHook(

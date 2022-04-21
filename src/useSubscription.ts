@@ -19,6 +19,7 @@ export function useSubscription<T, R = T>(
   const consumerRef = useVolatileValue({ observer, piper });
   // useLayoutEffect means we subscribe immediately after render, rather than
   // in a new "frame". Otherwise we could miss emissions.
+  // Note that this means emissions IN render will not be caught.
   React.useLayoutEffect(() => {
     if (!observable) {
       return;
