@@ -30,8 +30,8 @@ import { useSubscribableValue } from "./useSubscribableValue";
  * 3. A stream of all operation status values
  */
 export function useOperation<Q, R, E = unknown>(
-  operation: Operation<Q, R, E>,
-  executeImmediately?: Q extends void ? boolean : { initialParams: Q },
+  operation: Operation<Q, R>,
+  options?: OperationOptions<Q>,
 ): [
   PromiseStatus<R, E>,
   (parmeters: Q) => TrackedPromise<R, E>,
@@ -40,12 +40,14 @@ export function useOperation<Q, R, E = unknown>(
   const modelRef = React.useRef<OperationModel<Q, R, E>>();
   if (!modelRef.current) {
     // Wrap the operation call in a closure so that it uses the latest value.
-    modelRef.current = new OperationModel((parameters, prevStatus) =>
-      operation(parameters, prevStatus),
+    modelRef.current = new OperationModel(
+      (parameters) => operation(parameters),
+      options?.preserveLatestValue,
     );
-    if (executeImmediately) {
-      // This will be undefined if `Q` is `void`.
-      const initialParams = (executeImmediately as any).initialParams;
+    if (options?.executeImmediately) {
+      // By type definitions, this will be present and of type `Q`
+      // unless `Q` is `void`. Then it's `undefined`.
+      const initialParams = (options as any).initialParams;
       modelRef.current.execute(initialParams);
     }
   }
@@ -56,3 +58,10 @@ export function useOperation<Q, R, E = unknown>(
   );
   return [currentStatus, operationModel.execute, operationModel];
 }
+
+export type OperationOptions<Q> = {
+  preserveLatestValue?: boolean;
+} & (
+  | { executeImmediately?: false }
+  | { executeImmediately: true; initialParams: Q }
+);

@@ -27,7 +27,10 @@ describe("useOperation", () => {
       // Act
       const { result } = renderHook(
         (operation) =>
-          useOperation(operation, { initialParams: "initialParameter" }),
+          useOperation(operation, {
+            executeImmediately: true,
+            initialParams: "initialParameter",
+          }),
         {
           initialProps: operation,
         },
@@ -88,7 +91,7 @@ describe("useOperation", () => {
         value: "result",
       });
     });
-    it("is a pending status with prior value immediately after a second execution", async () => {
+    it("is a pending status immediately after a second execution", async () => {
       // Arrange
       const { operation, promiseSets } = makeTestOperation();
       // Act
@@ -108,9 +111,37 @@ describe("useOperation", () => {
         isPending: true,
         hasError: false,
         source: promiseSets[1].promise,
-        hasValue: true,
-        value: "result1",
+        hasValue: false,
       });
+    });
+    it("maintains prior value when instructed", async () => {
+      // Arrange
+      const { operation, promiseSets } = makeTestOperation();
+      // Act
+      const { result } = renderHook(
+        (operation) =>
+          useOperation(operation, {
+            preserveLatestValue: true,
+          }),
+        {
+          initialProps: operation,
+        },
+      );
+      await act(async () => {
+        const [, execute] = result.current;
+        execute("parameter1");
+        promiseSets[0].resolve("result1");
+        await promiseSets[0].promise;
+        execute("parameter2");
+      });
+      // Assert
+      const [currentStatus] = result.current;
+      expect(currentStatus).toEqual(
+        expect.objectContaining({
+          hasValue: true,
+          value: "result1",
+        }),
+      );
     });
     it("is not a success status if second execution happens before the first resolves", async () => {
       // Arrange
@@ -137,9 +168,9 @@ describe("useOperation", () => {
     });
   });
   describe("returned execute function", () => {
-    it("calls operation with params and last good value", async () => {
+    it("calls operation with params", async () => {
       // Arrange
-      const { operation, promiseSets } = makeTestOperation();
+      const { operation } = makeTestOperation();
       // Act
       const { result } = renderHook((operation) => useOperation(operation), {
         initialProps: operation,
@@ -147,17 +178,9 @@ describe("useOperation", () => {
       const execute = result.current[1];
       await act(async () => {
         execute("parameter1");
-        promiseSets[0].resolve("result1");
-        await promiseSets[0].promise;
-        execute("parameter2");
       });
       // Assert
-      expect(operation).toHaveBeenLastCalledWith(
-        "parameter2",
-        expect.objectContaining({
-          value: "result1",
-        }),
-      );
+      expect(operation).toHaveBeenLastCalledWith("parameter1");
     });
     it("returns the TrackedPromise from the operation", async () => {
       // Arrange
@@ -211,12 +234,12 @@ describe("useOperation", () => {
 
 function makeTestOperation() {
   const promiseSets: Array<TestPromiseSet<string, string>> = [];
-  const operation: Operation<string, string, string> = jest
+  const operation: Operation<string, string> = jest
     .fn()
-    .mockImplementation((_, previousStatus) => {
+    .mockImplementation(() => {
       const promiseSet = makeTestPromise<string, string>();
       promiseSets.push(promiseSet);
-      return new TrackedPromise(promiseSet.promise, previousStatus);
+      return promiseSet.promise;
     });
   return { operation, promiseSets };
 }
