@@ -3,12 +3,10 @@ import {
   OperationModel,
 } from "@brandonwilliamscs/data-tools/operation";
 import {
-  PromiseStatus,
   PromiseStatusStream,
   TrackedPromise,
 } from "@brandonwilliamscs/data-tools/promise";
 import React from "react";
-import { useSubscribableValue } from "./useSubscribableValue";
 
 /**
  * Statefully tracks an operation through arbitrary execution calls.
@@ -32,11 +30,7 @@ import { useSubscribableValue } from "./useSubscribableValue";
 export function useOperation<Q, R, E = unknown>(
   operation: Operation<Q, R>,
   options?: OperationOptions<Q>,
-): [
-  PromiseStatus<R, E>,
-  (parmeters: Q) => TrackedPromise<R, E>,
-  PromiseStatusStream<R, E>,
-] {
+): [(parmeters: Q) => TrackedPromise<R, E>, PromiseStatusStream<R, E>] {
   const modelRef = React.useRef<OperationModel<Q, R, E>>();
   if (!modelRef.current) {
     // Wrap the operation call in a closure so that it uses the latest value.
@@ -52,11 +46,7 @@ export function useOperation<Q, R, E = unknown>(
     }
   }
   const operationModel = modelRef.current;
-  const currentStatus = useSubscribableValue(
-    operationModel.statusChanges,
-    operationModel.currentStatus,
-  );
-  return [currentStatus, operationModel.execute, operationModel];
+  return [operationModel.execute, operationModel];
 }
 
 export type OperationOptions<Q> = {
